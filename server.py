@@ -24,33 +24,33 @@ progress = Progressbar(w, style="red.Horizontal.TProgressbar", orient=HORIZONTAL
 def new_win():
     q = Tk()
     q.title("")
-    q.geometry("427x250")
+    q.geometry("854x500")
     l1 = Label(q, text='ADD TEXT HERE ', fg='grey', bg=None)
     l = ('Calibri (Body)', 24, 'bold')
     l1.config(font=l)
-    l1.place(x=80, y=100)
+    l1.pack(expand=TRUE)
 
     q.mainloop()
 
 def bar():
-    l4 = Label(w, text='Loading...', fg="white", bg=a, anchor=SW)
+    l4 = Label(w, text='Loading...', fg="white", bg=a)
     lst4 = ('Calibri (Body)', 10)
     l4.config(font=lst4)
     # l4.place(x=18, y=210)
-    l4.pack(fill=BOTH, pady=(0, 50))
+    l4.pack(side=LEFT)
 
     import time
     r = 0
     for i in range(100):
         progress['value'] = r
         w.update_idletasks()
-        time.sleep(0.05)
+        time.sleep(0.02)
         r = r + 1
 
     w.destroy()
     new_win()
 
-progress.pack(fill=BOTH)
+progress.pack(side=BOTTOM)
 
 a = '#249794'
 Frame(w, width=857, height=482, bg = a).place(x=0, y=0)
