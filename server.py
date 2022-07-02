@@ -1,4 +1,4 @@
-from calendar import leapdays
+# from calendar import leapdays
 from tkinter.ttk import *
 from tkinter import *
 
@@ -33,11 +33,11 @@ def new_win():
     q.mainloop()
 
 def bar():
-    l4 = Label(w, text='Loading...', fg="white", bg=a)
+    l4 = Label(w, text='Loading...', fg="white", bg=a, anchor=S)
     lst4 = ('Calibri (Body)', 10)
     l4.config(font=lst4)
     # l4.place(x=18, y=210)
-    l4.pack(side=LEFT)
+    l4.pack(side=LEFT, pady=(50, 0))
 
     import time
     r = 0
@@ -74,6 +74,6 @@ l3.pack(fill=BOTH, padx=100, pady=10)
 
 b1 = Button(w, width=20, height=2, text="Get started", command=bar, border=1, fg=a, bg="white", anchor=CENTER)
 # b1.place(x=200, y=300)
-b1.pack(pady=100)
+b1.pack(pady=50)
 
 w.mainloop()
