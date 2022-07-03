@@ -1,17 +1,16 @@
-from socket import *
-import threading
+from tkinter import *
 
-sck = socket(AF_INET, SOCK_STREAM)
-sck.bind(("127.0.0.1", 9000))
-sck.listen(5)
+root = Tk()
 
-def handle_client(c):
-    print("Received connection from ", a)
-    c.close();
+def getText(entry):
+    print(entry.get())
 
-    return
+entry = Entry(root)
+entry.pack()
 
-while True:
-    c, a = sck.accept()
-    t = threading.Thread(target=handle_client, args=(c, ))
-    t.start()
+print(entry.get())
+
+# btn = Button(root, text="enter", command=lambda:getText(entry))
+# btn.pack()
+
+root.mainloop()

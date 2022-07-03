@@ -17,7 +17,9 @@ def handle_client(client, clientInfo, new_win_text):
     message = "Hello client";
     client.send(message.encode())
     new_win_text.config(text=clientInfo)
-    client.close()
+    # client.close()
+    data = client.recv(10000)
+    print(data.decode())
 
     return
 
