@@ -34,6 +34,8 @@ def handle_socket_listening(sck, new_win_text):
 # *********************************** 
 # *          Initialize GUI         *
 # ***********************************
+
+# Initialize height and weight of windows
 w = Tk()
 
 w.title("")
