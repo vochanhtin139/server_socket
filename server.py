@@ -1,7 +1,39 @@
-# from calendar import leapdays
 from tkinter.ttk import *
 from tkinter import *
+from socket import *
+import threading
 
+# *********************************** 
+# *         Initialize SOCKET       *
+# ***********************************
+
+sck = socket(AF_INET, SOCK_STREAM)
+sck.bind(("127.0.0.1", 9000))
+sck.listen(5)
+
+# Handling client in the background
+def handle_client(client, clientInfo, new_win_text):
+    print("Received connection from ", clientInfo)
+    message = "Hello client";
+    client.send(message.encode())
+    new_win_text.config(text=clientInfo)
+    client.close()
+
+    return
+
+# Handling listening socket in the background
+def handle_socket_listening(sck, new_win_text):
+    while True:
+        client, clientInfo = sck.accept()
+        t = threading.Thread(target=handle_client, args=(client, clientInfo, new_win_text))
+        t.start()
+    
+    return
+
+
+# *********************************** 
+# *          Initialize GUI         *
+# ***********************************
 w = Tk()
 
 w.title("")
@@ -21,6 +53,7 @@ s.theme_use('clam')
 s.configure("red.Horizontal.TProgressbar", foreground='red', background="#4f4f4f")
 progress = Progressbar(w, style="red.Horizontal.TProgressbar", orient=HORIZONTAL, length=1000, mode='determinate')
 
+# New window after splash screen
 def new_win():
     q = Tk()
     q.title("")
@@ -30,8 +63,12 @@ def new_win():
     l1.config(font=l)
     l1.pack(expand=TRUE)
 
-    q.mainloop()
+    socket_threaded = threading.Thread(target=handle_socket_listening, args=(sck, l1))
+    socket_threaded.start()
 
+    q.mainloop()    
+
+# Config the bar at splash screen
 def bar():
     l4 = Label(w, text='Loading...', fg="white", bg=a, anchor=S)
     lst4 = ('Calibri (Body)', 10)
@@ -52,6 +89,7 @@ def bar():
 
 progress.pack(side=BOTTOM)
 
+# Adding widget at splash screen
 a = '#249794'
 Frame(w, width=857, height=482, bg = a).place(x=0, y=0)
 
