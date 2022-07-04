@@ -1,3 +1,6 @@
+from cProfile import label
+from logging import root
+from optparse import Option
 from tkinter.ttk import *
 from tkinter import *
 from turtle import up
@@ -10,7 +13,7 @@ import sqlite3
 # *        Initialize SQLite        *
 # ***********************************
 
-num_connection = 0
+num_connection = [0]
 
 sqliteConnection = sqlite3.connect("sqlite.db")
 dbCursor = sqliteConnection.cursor()
@@ -30,8 +33,9 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     print("Received connection from ", clientInfo)
 
     # num_connection + 1
+    num_connection[0] += 1
     
-    btn_client_connecting_str.set(str(num_connection + 1) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0] + 1) + " client(s) connected")
 
     message = "Hello client";
     client.send(message.encode())
@@ -56,6 +60,36 @@ def handle_socket_listening(sck, new_win_text, btn_client_connecting_str):
 # *          Initialize GUI         *
 # ***********************************
 
+# Add food pop up windows
+def add_food_popup_windows(root):
+    popup = Toplevel(root)
+    popup.geometry("700x500+300+300")
+
+    fleft = Frame(popup, width=100, height=50, relief=RAISED, background="#0ffc03")
+
+    btnIMG_file = Image.open("icon\\fast_food.png")
+    btnIMG_file.thumbnail((200, 200), Image.ANTIALIAS)
+    btnIMG_object= ImageTk.PhotoImage(btnIMG_file)
+
+    btnIMG = Button(fleft, height=200, width=200, image=btnIMG_object)
+    btnIMG.pack(fill=BOTH, padx=40, pady=40)
+
+    lbDir = Label(fleft, text="No file chosen")
+    lbDir.pack()
+
+    btnInsert = Button(fleft, height=2, width=10, text="INSERT")
+    btnInsert.pack(side=LEFT, anchor=S, padx=(30, 0), pady=15)
+
+    btnInsert = Button(fleft, height=2, width=10, text="CANCEL")
+    btnInsert.pack(side=RIGHT, anchor=S, padx=(0, 30), pady=15)
+
+    fleft.pack(fill=BOTH, side=LEFT)
+
+    # fleft = Frame(popup, relief=RAISED, borderwidth=1)
+    # fleft.pack(side=RIGHT)
+
+    popup.mainloop()
+
 # Initialize height and weight of windows
 w = Tk()
 
@@ -79,17 +113,23 @@ progress = Progressbar(w, style="red.Horizontal.TProgressbar", orient=HORIZONTAL
 # New window after splash screen
 def new_win():
     q = Tk()
-    q.title("Sever Menu")
+    q.title("Server Menu")
     q.geometry("854x500")
 
     btn_setting_icon = Image.open("icon\\setting.png")
     btn_setting_icon.thumbnail((50, 50), Image.ANTIALIAS)
     btn_setting_img= ImageTk.PhotoImage(btn_setting_icon)
-    btn_setting = Button(q, width=50, height=50, image=btn_setting_img, border=0)
+    btn_setting = Menubutton(q, text="Preferences", image=btn_setting_img)
+    btn_setting.grid()
+    btn_setting.menu = Menu(btn_setting, tearoff=0)
+    btn_setting["menu"] = btn_setting.menu
+    btn_setting.menu.add_command(label="Add food", command=lambda:add_food_popup_windows(q))
+    btn_setting.menu.add_command(label="Settings")
+    btn_setting.menu.add_command(label="About us")
     btn_setting.pack(side=RIGHT, anchor=N, padx=(0, 10), pady=(10, 0))
 
     btn_client_connecting_str = StringVar()
-    btn_client_connecting_str.set(str(num_connection) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
     btn_client_connecting = Button(q, textvariable=btn_client_connecting_str);
     btn_client_connecting.pack(side=RIGHT, anchor=N, padx=(0, 20), pady=(20, 0))
 
@@ -97,16 +137,10 @@ def new_win():
     lb1.config(font=("Tahoma", 30, "italic"))
     lb1.pack(side=LEFT, anchor=N, padx=(20, 0), pady=(10, 0))
 
-
-
-
-
     l1 = Label(q, text='ADD TEXT HERE ', fg='grey', bg=None)
     l = ('Calibri (Body)', 24, 'bold')
     l1.config(font=l)
     l1.pack(expand=TRUE)
-
-
 
     socket_threaded = threading.Thread(target=handle_socket_listening, args=(sck, l1, btn_client_connecting_str))
     socket_threaded.start()
