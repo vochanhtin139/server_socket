@@ -1,33 +1,52 @@
 from tkinter.ttk import *
 from tkinter import *
+from turtle import up
+from PIL import Image, ImageTk
 from socket import *
 import threading
+import sqlite3
+
+# *********************************** 
+# *        Initialize SQLite        *
+# ***********************************
+
+num_connection = 0
+
+sqliteConnection = sqlite3.connect("sqlite.db")
+dbCursor = sqliteConnection.cursor()
+dbCursor.close()
 
 # *********************************** 
 # *         Initialize SOCKET       *
 # ***********************************
 
+# Declare socket
 sck = socket(AF_INET, SOCK_STREAM)
 sck.bind(("127.0.0.1", 9000))
 sck.listen(5)
 
 # Handling client in the background
-def handle_client(client, clientInfo, new_win_text):
+def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     print("Received connection from ", clientInfo)
+
+    # num_connection + 1
+    
+    btn_client_connecting_str.set(str(num_connection + 1) + " client(s) connected")
+
     message = "Hello client";
     client.send(message.encode())
     new_win_text.config(text=clientInfo)
     # client.close()
     data = client.recv(10000)
-    print(data.decode())
+    print(data.decode()) 
 
     return
 
 # Handling listening socket in the background
-def handle_socket_listening(sck, new_win_text):
+def handle_socket_listening(sck, new_win_text, btn_client_connecting_str):
     while True:
         client, clientInfo = sck.accept()
-        t = threading.Thread(target=handle_client, args=(client, clientInfo, new_win_text))
+        t = threading.Thread(target=handle_client, args=(client, clientInfo, new_win_text, btn_client_connecting_str))
         t.start()
     
     return
@@ -49,9 +68,9 @@ screen_height = w.winfo_screenheight()
 x_coordinate = (screen_width / 2) - (width_of_window / 2)
 y_coordinate = (screen_height / 2) - (height_of_window / 2)
 w.geometry("%dx%d+%d+%d" % (width_of_window, height_of_window, x_coordinate, y_coordinate))
-
 # w.overrideredirect(1)
 
+# Set up progress bar
 s = Style()
 s.theme_use('clam')
 s.configure("red.Horizontal.TProgressbar", foreground='red', background="#4f4f4f")
@@ -60,14 +79,36 @@ progress = Progressbar(w, style="red.Horizontal.TProgressbar", orient=HORIZONTAL
 # New window after splash screen
 def new_win():
     q = Tk()
-    q.title("")
+    q.title("Sever Menu")
     q.geometry("854x500")
+
+    btn_setting_icon = Image.open("icon\\setting.png")
+    btn_setting_icon.thumbnail((50, 50), Image.ANTIALIAS)
+    btn_setting_img= ImageTk.PhotoImage(btn_setting_icon)
+    btn_setting = Button(q, width=50, height=50, image=btn_setting_img, border=0)
+    btn_setting.pack(side=RIGHT, anchor=N, padx=(0, 10), pady=(10, 0))
+
+    btn_client_connecting_str = StringVar()
+    btn_client_connecting_str.set(str(num_connection) + " client(s) connected")
+    btn_client_connecting = Button(q, textvariable=btn_client_connecting_str);
+    btn_client_connecting.pack(side=RIGHT, anchor=N, padx=(0, 20), pady=(20, 0))
+
+    lb1 = Label(q, text="Sever Menu", foreground='#249794')
+    lb1.config(font=("Tahoma", 30, "italic"))
+    lb1.pack(side=LEFT, anchor=N, padx=(20, 0), pady=(10, 0))
+
+
+
+
+
     l1 = Label(q, text='ADD TEXT HERE ', fg='grey', bg=None)
     l = ('Calibri (Body)', 24, 'bold')
     l1.config(font=l)
     l1.pack(expand=TRUE)
 
-    socket_threaded = threading.Thread(target=handle_socket_listening, args=(sck, l1))
+
+
+    socket_threaded = threading.Thread(target=handle_socket_listening, args=(sck, l1, btn_client_connecting_str))
     socket_threaded.start()
 
     q.mainloop()    
