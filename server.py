@@ -1,13 +1,20 @@
+from asyncio.windows_events import NULL
 from cProfile import label
+from ctypes import WinDLL, sizeof
+from email.utils import formataddr
 from logging import root
 from optparse import Option
+from posixpath import split
 from tkinter.ttk import *
 from tkinter import *
-from turtle import up
+from turtle import up, width
 from PIL import Image, ImageTk
 from socket import *
 import threading
 import sqlite3
+import os
+import tkinter.filedialog
+from tkinter.filedialog import Open, askopenfilename
 
 # *********************************** 
 # *        Initialize SQLite        *
@@ -17,7 +24,7 @@ num_connection = [0]
 
 sqliteConnection = sqlite3.connect("sqlite.db")
 dbCursor = sqliteConnection.cursor()
-dbCursor.close()
+# dbCursor.close()
 
 # *********************************** 
 # *         Initialize SOCKET       *
@@ -37,7 +44,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     
     btn_client_connecting_str.set(str(num_connection[0] + 1) + " client(s) connected")
 
-    message = "Hello client";
+    message = "Hello client"
     client.send(message.encode())
     new_win_text.config(text=clientInfo)
     # client.close()
@@ -60,33 +67,124 @@ def handle_socket_listening(sck, new_win_text, btn_client_connecting_str):
 # *          Initialize GUI         *
 # ***********************************
 
+# Convert picture to Binary
+def convertToBinaryData(filename):
+    # Convert digital data to binary format
+    with open(filename, 'rb') as file:
+        blobData = file.read()
+    return blobData
+
+f_type = [("Tất cả file",".*"),("Tập tin hình ảnh",".png")]
+picture_link = ""
+empPhoto = [""]
+
+# Adding picture
+def add_picture(popup, fleft):
+    global picture_link 
+    picture_link = tkinter.filedialog.askopenfilename(parent=popup, initialdir=os.getcwd(), title="Chọn tập tin",filetypes=f_type)
+    
+    lbDir.configure(text=picture_link)
+
+    empPhoto[0] = convertToBinaryData(picture_link)
+
+    substring = StringVar()
+    substring = picture_link.split("/")
+    substring.reverse()
+    
+    picture_link = "icon\\"
+    picture_link += substring[0]
+
+    btnIMG_fileReplace = Image.open(picture_link)
+    btnIMG_fileReplace.thumbnail((200, 200), Image.ANTIALIAS)
+    btnIMG_objectReplace= ImageTk.PhotoImage(btnIMG_fileReplace)
+
+    btnIMG.configure(image=btnIMG_objectReplace)
+    btnIMG.image = btnIMG_objectReplace
+
+# Turn back to normal state when user click cancel
+def remove_picture(fleft):
+    lbDir.configure(text="No file chosen")
+
+    btnIMG_fileReplace = Image.open("icon\\fast_food.png")
+    btnIMG_fileReplace.thumbnail((200, 200), Image.ANTIALIAS)
+    btnIMG_objectReplace= ImageTk.PhotoImage(btnIMG_fileReplace)
+
+    btnIMG.configure(image=btnIMG_objectReplace)
+    btnIMG.image = btnIMG_objectReplace
+
+# Add food menu to sql
+def add_food_menu_sql(food_nameAdd, priceAdd, descripAdd, photoAdd):
+    sql_insert_query = "INSERT INTO food_menu (food_name, price, description, image) VALUES (?, ?, ?, ?)"
+
+    data_tuple = (food_nameAdd, priceAdd, descripAdd, photoAdd)
+    dbCursor.execute(sql_insert_query, data_tuple)
+    sqliteConnection.commit()
+
+
 # Add food pop up windows
-def add_food_popup_windows(root):
+def add_food_popup_windows(root, sqliteConnection):
     popup = Toplevel(root)
     popup.geometry("700x500+300+300")
 
-    fleft = Frame(popup, width=100, height=50, relief=RAISED, background="#0ffc03")
+    fleft = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
 
     btnIMG_file = Image.open("icon\\fast_food.png")
     btnIMG_file.thumbnail((200, 200), Image.ANTIALIAS)
     btnIMG_object= ImageTk.PhotoImage(btnIMG_file)
 
-    btnIMG = Button(fleft, height=200, width=200, image=btnIMG_object)
+    global btnIMG
+    btnIMG = Label(fleft, image=btnIMG_object)
     btnIMG.pack(fill=BOTH, padx=40, pady=40)
 
+    global lbDir
     lbDir = Label(fleft, text="No file chosen")
     lbDir.pack()
 
-    btnInsert = Button(fleft, height=2, width=10, text="INSERT")
+    #picture_link = StringVar()
+    btnInsert = Button(fleft, height=2, width=10, text="INSERT", command=lambda *agrs: add_picture(popup, fleft))
     btnInsert.pack(side=LEFT, anchor=S, padx=(30, 0), pady=15)
 
-    btnInsert = Button(fleft, height=2, width=10, text="CANCEL")
+    btnInsert = Button(fleft, height=2, width=10, text="CANCEL", command=lambda: remove_picture(fleft))
     btnInsert.pack(side=RIGHT, anchor=S, padx=(0, 30), pady=15)
 
     fleft.pack(fill=BOTH, side=LEFT)
 
     # fleft = Frame(popup, relief=RAISED, borderwidth=1)
     # fleft.pack(side=RIGHT)
+
+    fright = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
+
+    food_nameDir = Label(fright, text="Food name")
+    food_nameDir.config(font=("Tahoma", 20))
+    food_nameDir.pack(pady=(25, 0))
+
+    food_nameAdd = StringVar()
+    food_nameText = Entry(fright, bg="white", justify=CENTER, textvariable=food_nameAdd)
+    food_nameText.configure(font=("Tahoma", 20))
+    food_nameText.pack(fill=BOTH, pady=(25, 0))
+
+    priceDir = Label(fright, text="Price")
+    priceDir.config(font=("Tahoma", 20))
+    priceDir.pack(pady=(25, 0))
+
+    priceAdd = IntVar()
+    priceText = Entry(fright, bg="white", justify=CENTER, textvariable=priceAdd)
+    priceText.configure(font=("Tahoma", 20))
+    priceText.pack(fill=BOTH, pady=(25, 0))
+
+    descripDir = Label(fright, text="Description")
+    descripDir.config(font=("Tahoma", 20))
+    descripDir.pack(pady=(25, 0))
+
+    descripAdd = StringVar()
+    descripText = Entry(fright, bg="white", justify=CENTER, textvariable=descripAdd)
+    descripText.configure(font=("Tahoma", 20))
+    descripText.pack(fill=BOTH, pady=(25, 0))
+
+    btnInsertR = Button(fright, height=2, width=10, text="ADD FOOD", command=lambda: add_food_menu_sql(food_nameAdd.get(), priceAdd.get(), descripAdd.get(), empPhoto[0]))
+    btnInsertR.pack(side=BOTTOM, pady=15)
+
+    fright.pack(fill=BOTH, expand=TRUE)
 
     popup.mainloop()
 
@@ -123,14 +221,14 @@ def new_win():
     btn_setting.grid()
     btn_setting.menu = Menu(btn_setting, tearoff=0)
     btn_setting["menu"] = btn_setting.menu
-    btn_setting.menu.add_command(label="Add food", command=lambda:add_food_popup_windows(q))
+    btn_setting.menu.add_command(label="Add food", command=lambda:add_food_popup_windows(q, sqliteConnection))
     btn_setting.menu.add_command(label="Settings")
     btn_setting.menu.add_command(label="About us")
     btn_setting.pack(side=RIGHT, anchor=N, padx=(0, 10), pady=(10, 0))
 
     btn_client_connecting_str = StringVar()
     btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
-    btn_client_connecting = Button(q, textvariable=btn_client_connecting_str);
+    btn_client_connecting = Button(q, textvariable=btn_client_connecting_str)
     btn_client_connecting.pack(side=RIGHT, anchor=N, padx=(0, 20), pady=(20, 0))
 
     lb1 = Label(q, text="Sever Menu", foreground='#249794')
