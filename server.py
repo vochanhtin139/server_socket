@@ -202,32 +202,32 @@ def add_food_popup_windows(root, sqliteConnection):
 
     fright = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
 
-    food_nameDir = Label(fright, text="Food name")
-    food_nameDir.config(font=("Tahoma", 20))
-    food_nameDir.pack(pady=(25, 0))
+    food_nameDir = Label(fright, text="Food name", background="#249794", foreground="#fff")
+    food_nameDir.config(font=("Tahoma", 15, "bold"))
+    food_nameDir.pack(anchor = W, pady=(25, 0))
 
     food_nameAdd = StringVar()
     food_nameText = Entry(fright, bg="white", justify=CENTER, textvariable=food_nameAdd)
-    food_nameText.configure(font=("Tahoma", 20))
-    food_nameText.pack(fill=BOTH, pady=(25, 0))
+    food_nameText.configure(font=("Tahoma", 15))
+    food_nameText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
-    priceDir = Label(fright, text="Price")
-    priceDir.config(font=("Tahoma", 20))
-    priceDir.pack(pady=(25, 0))
+    priceDir = Label(fright, text="Price", background="#249794", foreground="#fff")
+    priceDir.config(font=("Tahoma", 15, "bold"))
+    priceDir.pack(anchor = W, pady=(25, 0))
 
     priceAdd = IntVar()
     priceText = Entry(fright, bg="white", justify=CENTER, textvariable=priceAdd)
-    priceText.configure(font=("Tahoma", 20))
-    priceText.pack(fill=BOTH, pady=(25, 0))
+    priceText.configure(font=("Tahoma", 15))
+    priceText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
-    descripDir = Label(fright, text="Description")
-    descripDir.config(font=("Tahoma", 20))
-    descripDir.pack(pady=(25, 0))
+    descripDir = Label(fright, text="Description", background="#249794", foreground="#fff")
+    descripDir.config(font=("Tahoma", 15, "bold"))
+    descripDir.pack(anchor = W, pady=(25, 0))
 
     descripAdd = StringVar()
     descripText = Entry(fright, bg="white", justify=CENTER, textvariable=descripAdd)
-    descripText.configure(font=("Tahoma", 20))
-    descripText.pack(fill=BOTH, pady=(25, 0))
+    descripText.configure(font=("Tahoma", 15))
+    descripText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
     btnInsertR = Button(fright, height=2, width=10, text="ADD FOOD", command=lambda: add_food_menu_sql(food_nameAdd.get(), priceAdd.get(), descripAdd.get(), empPhoto[0]))
     btnInsertR.pack(side=BOTTOM, pady=15)
