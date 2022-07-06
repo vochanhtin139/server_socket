@@ -91,7 +91,7 @@ def add_picture(popup, fleft):
     substring = picture_link.split("/")
     substring.reverse()
     
-    picture_link = "icon\\"
+    picture_link = "icon/"
     picture_link += substring[0]
 
     btnIMG_fileReplace = Image.open(picture_link)
@@ -105,7 +105,7 @@ def add_picture(popup, fleft):
 def remove_picture(fleft):
     lbDir.configure(text="No file chosen")
 
-    btnIMG_fileReplace = Image.open("icon\\fast_food.png")
+    btnIMG_fileReplace = Image.open("icon/fast_food.png")
     btnIMG_fileReplace.thumbnail((200, 200), Image.ANTIALIAS)
     btnIMG_objectReplace= ImageTk.PhotoImage(btnIMG_fileReplace)
 
@@ -120,6 +120,15 @@ def add_food_menu_sql(food_nameAdd, priceAdd, descripAdd, photoAdd):
     dbCursor.execute(sql_insert_query, data_tuple)
     sqliteConnection.commit()
 
+    r = Tk()
+    r.geometry("300x100")
+    r.title("Adding food")
+
+    lb = Label(r, text="Adding food to menu successfully!")
+    lb.pack(fill=BOTH, pady=30)
+
+    r.mainloop()
+
 
 # Add food pop up windows
 def add_food_popup_windows(root, sqliteConnection):
@@ -128,7 +137,7 @@ def add_food_popup_windows(root, sqliteConnection):
 
     fleft = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
 
-    btnIMG_file = Image.open("icon\\fast_food.png")
+    btnIMG_file = Image.open("icon/fast_food.png")
     btnIMG_file.thumbnail((200, 200), Image.ANTIALIAS)
     btnIMG_object= ImageTk.PhotoImage(btnIMG_file)
 
