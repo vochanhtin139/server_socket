@@ -42,7 +42,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     # num_connection + 1
     num_connection[0] += 1
     
-    btn_client_connecting_str.set(str(num_connection[0] + 1) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
 
     message = "Hello client"
     client.send(message.encode())
