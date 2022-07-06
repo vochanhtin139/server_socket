@@ -1,6 +1,6 @@
-from asyncio.windows_events import NULL
+# from asyncio.windows_events import NULL
 from cProfile import label
-from ctypes import WinDLL, sizeof
+# from ctypes import WinDLL, sizeof
 from email.utils import formataddr
 from logging import root
 from optparse import Option
@@ -15,6 +15,7 @@ import sqlite3
 import os
 import tkinter.filedialog
 from tkinter.filedialog import Open, askopenfilename
+import json
 
 # *********************************** 
 # *        Initialize SQLite        *
@@ -44,12 +45,50 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     
     btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
 
-    message = "Hello client"
-    client.send(message.encode())
-    new_win_text.config(text=clientInfo)
+    # message = "Hello client"
+    # client.send(message.encode())
+    # new_win_text.config(text=clientInfo)
     # client.close()
+
+    sqliteConn = sqlite3.connect("sqlite.db")
+    curs = sqliteConn.cursor()
+    curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
+
+    tmp = {
+        "type": "food_menu"
+    }
+    jArr = []
+    jArr.append(tmp)
+    cnt = 1
+
+    records = curs.fetchall()
+    for item in records:
+        tfood = "food" + str(cnt)
+        js = {
+            tfood: {
+                "id": item[0],
+                "food_name": item[1],
+                "price": item[2],
+                "description": item[3]
+            }
+        }
+        cnt += 1
+        jArr.append(js)
+
+    client.sendall(json.dumps(jArr).encode())
+
     data = client.recv(10000)
-    print(data.decode()) 
+    if (data.decode() == "Received"):
+        curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
+        for iPic in curs.fetchall():
+            client.sendall(iPic[4])
+
+    # sendStr = "Sent"
+    # client.sendall(sendStr)
+
+    curs.close()
+    # data = client.recv(10000)
+    # print(data.decode()) 
 
     return
 
@@ -223,7 +262,7 @@ def new_win():
     q.title("Server Menu")
     q.geometry("854x500")
 
-    btn_setting_icon = Image.open("icon\\setting.png")
+    btn_setting_icon = Image.open("icon/setting.png")
     btn_setting_icon.thumbnail((50, 50), Image.ANTIALIAS)
     btn_setting_img= ImageTk.PhotoImage(btn_setting_icon)
     btn_setting = Menubutton(q, text="Preferences", image=btn_setting_img)
