@@ -76,12 +76,15 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
         jArr.append(js)
 
     client.sendall(json.dumps(jArr).encode())
+    client.recv(10000)
 
-    data = client.recv(10000)
-    if (data.decode() == "Received"):
-        curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
-        for iPic in curs.fetchall():
-            client.sendall(iPic[4])
+    curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
+    for iPic in curs.fetchall():
+        client.sendall(str(len(iPic[4])).encode())
+        client.recv(10000)
+
+        client.sendall(iPic[4])
+        client.recv(10000)
 
     # sendStr = "Sent"
     # client.sendall(sendStr)
