@@ -73,7 +73,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     
     length = recvall(client, 64).decode('utf-8')
     tableId = recvall(client, int(length)).decode()
-    
+
     tId = "table" + str(tableId)
     
     curs.execute("CREATE TABLE IF NOT EXISTS \"" + tId + """\" (
