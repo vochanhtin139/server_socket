@@ -27,6 +27,15 @@ sqliteConnection = sqlite3.connect("sqlite.db")
 dbCursor = sqliteConnection.cursor()
 # dbCursor.close()
 
+dbCursor.execute("""CREATE TABLE IF NOT EXISTS "food_menu" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"food_name"	TEXT,
+	"price"	INTEGER,
+	"description"	TEXT,
+	"image"	BLOB,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);""")
+
 # *********************************** 
 # *         Initialize SOCKET       *
 # ***********************************
@@ -105,6 +114,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
     for iPic in curs.fetchall():
         client.sendall(str(len(iPic[4])).encode().ljust(64))
+
         client.sendall(iPic[4])
 
     # sendStr = "Sent"
