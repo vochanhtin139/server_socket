@@ -17,8 +17,6 @@ import tkinter.filedialog
 from tkinter.filedialog import Open, askopenfilename
 import json
 
-FORMAT = "utf-8"
-
 # *********************************** 
 # *        Initialize SQLite        *
 # ***********************************
@@ -27,7 +25,6 @@ num_connection = [0]
 
 sqliteConnection = sqlite3.connect("sqlite.db")
 dbCursor = sqliteConnection.cursor()
-dbCursor.execute("""CREATE TABLE IF NOT EXISTS "food_menu"("id"	INTEGER NOT NULL UNIQUE, "food_name" TEXT, "price" INTEGER, "description" TEXT, "image"	BLOB, PRIMARY KEY("id" AUTOINCREMENT));""")
 # dbCursor.close()
 
 # *********************************** 
@@ -39,17 +36,34 @@ sck = socket(AF_INET, SOCK_STREAM)
 sck.bind(("127.0.0.1", 9000))
 sck.listen(5)
 
+def recvall(sock, count):
+    buf = b''
+    while count:
+        newbuf = sock.recv(count)
+        if not newbuf: return None
+        buf += newbuf
+        count -= len(newbuf)
+    return buf
+
 # Handling client in the background
 def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     print("Received connection from ", clientInfo)
+
+    # num_connection + 1
+    num_connection[0] += 1
     
+    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
+
+    # message = "Hello client"
+    # client.send(message.encode())
+    # new_win_text.config(text=clientInfo)
+    # client.close()
+
     sqliteConn = sqlite3.connect("sqlite.db")
     curs = sqliteConn.cursor()
     
-    length = client.recv(1024).decode(FORMAT)
-    client.sendall(length.encode(FORMAT))
-    tableId = client.recv(int(length)).decode(FORMAT)
-    client.sendall(tableId.encode(FORMAT))
+    length = recvall(client, 64).decode('utf-8')
+    tableId = recvall(client, int(length)).decode()
     
     tId = "table" + str(tableId)
     
@@ -62,19 +76,9 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
         \"time_order\"	TEXT,
         PRIMARY KEY("id" AUTOINCREMENT)
     );""")
-
-    # num_connection + 1
-    num_connection[0] += 1
-    
-    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
-
-    # message = "Hello client"
-    # client.send(message.encode())
-    # new_win_text.config(text=clientInfo)
-    # client.close()
     
     curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
-
+    
     tmp = {
         "type": "food_menu"
     }
@@ -95,20 +99,13 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
         }
         cnt += 1
         jArr.append(js)
+    client.sendall(str(len(json.dumps(jArr))).encode().ljust(64))
+    client.sendall(json.dumps(jArr).encode())
 
-    client.sendall(str(len(json.dumps(jArr))).encode(FORMAT))
-    client.recv(1024)
-    client.sendall(json.dumps(jArr).encode(FORMAT))
-    client.recv(len(json.dumps(jArr)))
-    # ct_co_chap = client.recv(1024)
-    
     curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
     for iPic in curs.fetchall():
-        client.sendall(str(len(iPic[4])).encode(FORMAT))
-        client.recv(1024)
-
+        client.sendall(str(len(iPic[4])).encode().ljust(64))
         client.sendall(iPic[4])
-        client.recv(1024)
 
     # sendStr = "Sent"
     # client.sendall(sendStr)
