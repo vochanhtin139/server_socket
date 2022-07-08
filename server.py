@@ -313,7 +313,7 @@ def new_win():
     btn_client_connecting = Button(q, textvariable=btn_client_connecting_str)
     btn_client_connecting.pack(side=RIGHT, anchor=N, padx=(0, 20), pady=(20, 0))
 
-    lb1 = Label(q, text="Sever Menu", foreground='#249794')
+    lb1 = Label(q, text="Server Menu", foreground='#249794')
     lb1.config(font=("Tahoma", 30, "italic"))
     lb1.pack(side=LEFT, anchor=N, padx=(20, 0), pady=(10, 0))
 
