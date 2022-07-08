@@ -119,6 +119,33 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
 
     # sendStr = "Sent"
     # client.sendall(sendStr)
+    
+    order_length = recvall(client, 64).decode()
+    order = recvall(client, int(order_length)).decode()
+    print(order)
+    
+    if (order == "Order Food"):
+        jData_length = recvall(client, 64).decode() 
+        jData = recvall(client, int(jData_length))
+        
+        jRecv = json.loads(jData)
+        
+        totalAdd_length = recvall(client, 64).decode()
+        totalAdd = recvall(client, int(totalAdd_length))
+        print(totalAdd)
+        
+        cashAdd_length = recvall(client, 64).decode()
+        cashAdd = recvall(client, int(cashAdd_length))
+        print(cashAdd)
+        
+        cardAdd_length = recvall(client, 64).decode()
+        cardAdd = recvall(client, int(cardAdd_length))
+        print(cardAdd)
+        
+        time_orderAdd_length = recvall(client, 64).decode()
+        time_orderAdd = recvall(client, int(time_orderAdd_length))
+        print(time_orderAdd)
+        
 
     curs.close()
     # data = client.recv(10000)
@@ -202,6 +229,12 @@ def add_food_menu_sql(food_nameAdd, priceAdd, descripAdd, photoAdd):
 
     r.mainloop()
 
+def add_food_order_sql(food_order, total, cash, card, time_order, tId):
+    sql_insert_query = "INSERT INTO \"" + tId + """\" (food_order, total, cash, card, time_order) VALUES (?, ?, ?, ?)"""
+    
+    data_tuple = (food_order, total, cash, card, time_order)
+    dbCursor.execute(sql_insert_query, data_tuple)
+    sqliteConnection.commit()
 
 # Add food pop up windows
 def add_food_popup_windows(root, sqliteConnection):
