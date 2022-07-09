@@ -7,6 +7,7 @@ from optparse import Option
 from posixpath import split
 from tkinter.ttk import *
 from tkinter import *
+from tokenize import String
 from turtle import up, width
 from PIL import Image, ImageTk
 from socket import *
@@ -81,7 +82,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
         \"food_order\"	TEXT,
         \"total\"	INTEGER,
         \"cash\"	INTEGER,
-        \"card\"	INTEGER,
+        \"card\"	TEXT,
         \"time_order\"	TEXT,
         PRIMARY KEY("id" AUTOINCREMENT)
     );""")
@@ -122,30 +123,31 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     
     order_length = recvall(client, 64).decode()
     order = recvall(client, int(order_length)).decode()
-    print(order)
     
     if (order == "Order Food"):
         jData_length = recvall(client, 64).decode() 
-        jData = recvall(client, int(jData_length))
+        jData = recvall(client, int(jData_length)).decode()
         
         jRecv = json.loads(jData)
         
+        food_order = ""
+        for i in range(len(jRecv) - 1):
+            tfood = "food" + str(i + 1)
+            food_order = food_order + jRecv[i + 1][tfood]['id'] + ':' + jRecv[i + 1][tfood]['num'] + '/'
+        
         totalAdd_length = recvall(client, 64).decode()
-        totalAdd = recvall(client, int(totalAdd_length))
-        print(totalAdd)
+        totalAdd = recvall(client, int(totalAdd_length)).decode()
         
         cashAdd_length = recvall(client, 64).decode()
-        cashAdd = recvall(client, int(cashAdd_length))
-        print(cashAdd)
+        cashAdd = recvall(client, int(cashAdd_length)).decode()
         
         cardAdd_length = recvall(client, 64).decode()
-        cardAdd = recvall(client, int(cardAdd_length))
-        print(cardAdd)
+        cardAdd = recvall(client, int(cardAdd_length)).decode()
         
         time_orderAdd_length = recvall(client, 64).decode()
-        time_orderAdd = recvall(client, int(time_orderAdd_length))
-        print(time_orderAdd)
+        time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
         
+        add_food_order_sql(str(jRecv), int(totalAdd), int(cashAdd), cardAdd, time_orderAdd, tId)
 
     curs.close()
     # data = client.recv(10000)
@@ -230,11 +232,14 @@ def add_food_menu_sql(food_nameAdd, priceAdd, descripAdd, photoAdd):
     r.mainloop()
 
 def add_food_order_sql(food_order, total, cash, card, time_order, tId):
-    sql_insert_query = "INSERT INTO \"" + tId + """\" (food_order, total, cash, card, time_order) VALUES (?, ?, ?, ?)"""
+    sqliteConnectionTable = sqlite3.connect("sqlite.db")
+    tableCursor = sqliteConnectionTable.cursor()
+    
+    sql_insert_query = "INSERT INTO \"" + tId + """\" (food_order, total, cash, card, time_order) VALUES (?, ?, ?, ?, ?)"""
     
     data_tuple = (food_order, total, cash, card, time_order)
-    dbCursor.execute(sql_insert_query, data_tuple)
-    sqliteConnection.commit()
+    tableCursor.execute(sql_insert_query, data_tuple)
+    sqliteConnectionTable.commit()
 
 # Add food pop up windows
 def add_food_popup_windows(root, sqliteConnection):
