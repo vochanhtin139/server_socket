@@ -184,6 +184,10 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
             updTime = recvall(client, int(updTime_length)).decode()
             
             if updTime == "false":
+                sqliteDel = sqlite3.connect("sqlite.db")
+                delCursor = sqliteDel.cursor()
+                delCursor.execute("DROP TABLE \"" + tId + """\" """)
+                sqliteDel.commit()
                 break
             
             jData_length = recvall(client, 64).decode() 
@@ -205,7 +209,14 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     curs.close()
     # data = client.recv(10000)
     # print(data.decode()) 
+    
+    print(clientInfo, "disconnected")
 
+    # num_connection + 1
+    num_connection[0] -= 1
+    
+    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
+    
     return
 
 # Handling listening socket in the background
