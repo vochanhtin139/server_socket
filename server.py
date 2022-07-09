@@ -177,7 +177,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                 else:
                     break
             # Add status payment
-            add_status_payment_sql(int(cashAdd), cardAdd, tId)
+            add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
         else: 
             # Update food order
             updTime_length = recvall(client, 64).decode()
@@ -206,6 +206,40 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
             # Send total
             client.sendall(str(len(str(sum))).encode().ljust(64))
             client.sendall(str(sum).encode())
+            
+            while True:
+                # Receive payment info
+                cashAdd_length = recvall(client, 64).decode()
+                cashAdd = recvall(client, int(cashAdd_length)).decode()
+                
+                cardAdd_length = recvall(client, 64).decode()
+                cardAdd = recvall(client, int(cardAdd_length)).decode()
+                
+                # Pay by card
+                if cardAdd != "":
+                    flag = 1
+                    if len(cardAdd) == 10:
+                        for i in range(10):
+                            if (cardAdd[i] >= '0') and (cardAdd[i] <= '9'):
+                                continue
+                            else:
+                                flag = 0
+                                cardAdd = ""
+                                break 
+                    else:
+                        cardAdd = ""
+                        flag = 0
+                    
+                    client.sendall(str(len(str(flag))).encode().ljust(64))
+                    client.sendall(str(flag).encode())
+                    
+                    if flag == 1:
+                        break
+                else:
+                    break
+            # Add status payment
+            add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
+            
     curs.close()
     # data = client.recv(10000)
     # print(data.decode()) 
@@ -305,13 +339,13 @@ def add_food_order_sql(food_order, total, time_order, tId):
     tableCursor.execute(sql_insert_query, data_tuple)
     sqliteConnectionTable.commit()
 
-def add_status_payment_sql(cash, card, tId):
+def add_status_payment_sql(total, cash, card, tId):
     sqliteConnectionTable = sqlite3.connect("sqlite.db")
     tableCursor = sqliteConnectionTable.cursor()
     
-    sql_insert_query = "UPDATE \"" + tId + """\" SET cash=?, card=?"""
+    sql_insert_query = "UPDATE \"" + tId + """\" SET total=?, cash=?, card=?"""
     
-    data_tuple = (cash, card)
+    data_tuple = (total, cash, card)
     tableCursor.execute(sql_insert_query, data_tuple)
     sqliteConnectionTable.commit()
     
