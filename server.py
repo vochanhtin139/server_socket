@@ -1,5 +1,7 @@
 # from asyncio.windows_events import NULL
 from cProfile import label
+from ctypes import set_last_error
+from email.mime import image
 # from ctypes import WinDLL, sizeof
 from email.utils import formataddr
 from logging import root
@@ -62,7 +64,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     # num_connection + 1
     num_connection[0] += 1
     
-    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0]) + " client đã kết nối")
 
     # message = "Hello client"
     # client.send(message.encode())
@@ -249,7 +251,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     # num_connection + 1
     num_connection[0] -= 1
     
-    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0]) + " client đã kết nối")
     
     return
 
@@ -322,9 +324,9 @@ def add_food_menu_sql(food_nameAdd, priceAdd, descripAdd, photoAdd):
 
     r = Tk()
     r.geometry("300x100")
-    r.title("Adding food")
+    r.title("Thêm món ăn")
 
-    lb = Label(r, text="Adding food to menu successfully!")
+    lb = Label(r, text="Đã thêm món ăn vào thực đơn!")
     lb.pack(fill=BOTH, pady=30)
 
     r.mainloop()
@@ -353,6 +355,7 @@ def add_status_payment_sql(total, cash, card, tId):
 def add_food_popup_windows(root, sqliteConnection):
     popup = Toplevel(root)
     popup.geometry("700x500+300+300")
+    popup.title("Thêm món ăn")
 
     fleft = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
 
@@ -365,14 +368,14 @@ def add_food_popup_windows(root, sqliteConnection):
     btnIMG.pack(fill=BOTH, padx=40, pady=40)
 
     global lbDir
-    lbDir = Label(fleft, text="No file chosen")
+    lbDir = Label(fleft, text="Không có nào được chọn")
     lbDir.pack()
 
     #picture_link = StringVar()
-    btnInsert = Button(fleft, height=2, width=10, text="INSERT", command=lambda *agrs: add_picture(popup, fleft))
+    btnInsert = Button(fleft, height=2, width=10, text="THÊM", command=lambda *agrs: add_picture(popup, fleft))
     btnInsert.pack(side=LEFT, anchor=S, padx=(30, 0), pady=15)
 
-    btnInsert = Button(fleft, height=2, width=10, text="CANCEL", command=lambda: remove_picture(fleft))
+    btnInsert = Button(fleft, height=2, width=10, text="HỦY", command=lambda: remove_picture(fleft))
     btnInsert.pack(side=RIGHT, anchor=S, padx=(0, 30), pady=15)
 
     fleft.pack(fill=BOTH, side=LEFT)
@@ -382,7 +385,7 @@ def add_food_popup_windows(root, sqliteConnection):
 
     fright = Frame(popup, width=100, height=50, relief=RAISED, background="#249794")
 
-    food_nameDir = Label(fright, text="Food name", background="#249794", foreground="#fff")
+    food_nameDir = Label(fright, text="Tên món ăn", background="#249794", foreground="#fff")
     food_nameDir.config(font=("Tahoma", 15, "bold"))
     food_nameDir.pack(anchor = W, pady=(25, 0))
 
@@ -391,7 +394,7 @@ def add_food_popup_windows(root, sqliteConnection):
     food_nameText.configure(font=("Tahoma", 15))
     food_nameText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
-    priceDir = Label(fright, text="Price", background="#249794", foreground="#fff")
+    priceDir = Label(fright, text="Giá", background="#249794", foreground="#fff")
     priceDir.config(font=("Tahoma", 15, "bold"))
     priceDir.pack(anchor = W, pady=(25, 0))
 
@@ -400,7 +403,7 @@ def add_food_popup_windows(root, sqliteConnection):
     priceText.configure(font=("Tahoma", 15))
     priceText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
-    descripDir = Label(fright, text="Description", background="#249794", foreground="#fff")
+    descripDir = Label(fright, text="Mô tả", background="#249794", foreground="#fff")
     descripDir.config(font=("Tahoma", 15, "bold"))
     descripDir.pack(anchor = W, pady=(25, 0))
 
@@ -409,7 +412,7 @@ def add_food_popup_windows(root, sqliteConnection):
     descripText.configure(font=("Tahoma", 15))
     descripText.pack(fill=BOTH, pady=(25, 0), padx=(0, 40))
 
-    btnInsertR = Button(fright, height=2, width=10, text="ADD FOOD", command=lambda: add_food_menu_sql(food_nameAdd.get(), priceAdd.get(), descripAdd.get(), empPhoto[0]))
+    btnInsertR = Button(fright, height=2, width=10, text="THÊM MÓN ĂN", command=lambda: add_food_menu_sql(food_nameAdd.get(), priceAdd.get(), descripAdd.get(), empPhoto[0]))
     btnInsertR.pack(side=BOTTOM, pady=15)
 
     fright.pack(fill=BOTH, expand=TRUE)
@@ -428,13 +431,38 @@ screen_height = w.winfo_screenheight()
 x_coordinate = (screen_width / 2) - (width_of_window / 2)
 y_coordinate = (screen_height / 2) - (height_of_window / 2)
 w.geometry("%dx%d+%d+%d" % (width_of_window, height_of_window, x_coordinate, y_coordinate))
-# w.overrideredirect(1)
+w.overrideredirect(1)
 
 # Set up progress bar
 s = Style()
 s.theme_use('clam')
 s.configure("red.Horizontal.TProgressbar", foreground='red', background="#4f4f4f")
 progress = Progressbar(w, style="red.Horizontal.TProgressbar", orient=HORIZONTAL, length=1000, mode='determinate')
+
+# 'About us' window
+def aboutUsWindows(q):
+    popup = Toplevel(q)
+    popup.title("Về chúng tôi")
+    popup.geometry("400x350+300+300")
+
+    lb1 = Label(popup, text="Nhóm 08 - 21CLC10", font=("Tahoma", 20, "bold"))
+    lb1.pack(pady=(20, 0))
+
+    lb2 = Label(popup, text="Đồ án mạng máy tính Food Order", font=("Tahoma", 15))
+    lb2.pack(pady=(20, 0))
+
+    lb3 = Label(popup, text="Thực hiện bởi:", font=("Tahoma", 13))
+    lb3.pack(anchor=W, pady=(20, 0), padx=(20, 0))
+
+    lb4 = Label(popup, justify=LEFT, text="Võ Chánh Tín - 21127182\nPhan Như Quỳnh - 21127155\nNguyễn Văn Đăng Huỳnh - 21127063", font=("Tahoma", 11, "bold"))
+    lb4.pack(pady=(5, 0))
+
+    img = Image.open("icon\\fit_logo.png")
+    imgTk = ImageTk.PhotoImage(img)
+    lb5 = Label(popup, image=imgTk)
+    lb5.pack(pady=(10, 0))
+
+    popup.mainloop()
 
 # New window after splash screen
 def new_win():
@@ -449,13 +477,12 @@ def new_win():
     btn_setting.grid()
     btn_setting.menu = Menu(btn_setting, tearoff=0)
     btn_setting["menu"] = btn_setting.menu
-    btn_setting.menu.add_command(label="Add food", command=lambda:add_food_popup_windows(q, sqliteConnection))
-    btn_setting.menu.add_command(label="Settings")
-    btn_setting.menu.add_command(label="About us")
+    btn_setting.menu.add_command(label="Thêm món ăn", command=lambda:add_food_popup_windows(q, sqliteConnection))
+    btn_setting.menu.add_command(label="Về chúng tôi", command=lambda:aboutUsWindows(q))
     btn_setting.pack(side=RIGHT, anchor=N, padx=(0, 10), pady=(10, 0))
 
     btn_client_connecting_str = StringVar()
-    btn_client_connecting_str.set(str(num_connection[0]) + " client(s) connected")
+    btn_client_connecting_str.set(str(num_connection[0]) + " client đã kết nối")
     btn_client_connecting = Button(q, textvariable=btn_client_connecting_str)
     btn_client_connecting.pack(side=RIGHT, anchor=N, padx=(0, 20), pady=(20, 0))
 
@@ -463,7 +490,7 @@ def new_win():
     lb1.config(font=("Tahoma", 30, "italic"))
     lb1.pack(side=LEFT, anchor=N, padx=(20, 0), pady=(10, 0))
 
-    l1 = Label(q, text='ADD TEXT HERE ', fg='grey', bg=None)
+    l1 = Label(q, text='127.0.0.1 | PORT 9000', fg='grey', bg=None)
     l = ('Calibri (Body)', 24, 'bold')
     l1.config(font=l)
     l1.pack(expand=TRUE)
@@ -475,7 +502,7 @@ def new_win():
 
 # Config the bar at splash screen
 def bar():
-    l4 = Label(w, text='Loading...', fg="white", bg=a, anchor=S)
+    l4 = Label(w, text='Đang tải...', fg="white", bg=a, anchor=S)
     lst4 = ('Calibri (Body)', 10)
     l4.config(font=lst4)
     # l4.place(x=18, y=210)
@@ -496,26 +523,29 @@ progress.pack(side=BOTTOM)
 
 # Adding widget at splash screen
 a = '#249794'
-Frame(w, width=857, height=482, bg = a).place(x=0, y=0)
+splashIMG = Image.open("icon\\splash_screen.png")
+splashIMG_TK = ImageTk.PhotoImage(splashIMG)
 
-l1 = Label(w, text='SERVER MENU', fg = 'white', bg=a, anchor=W)
+Frame(w, width=857, height=482, bg=a).place(x=0, y=0)
+
+l1 = Label(w, text='SERVER MANAGER', fg = 'white', bg=a, anchor=W)
 lst1 = ('Courier New', 50, 'bold italic')
 l1.config(font=lst1)
 # l1.place(x=90, y=50)
 l1.pack(fill=BOTH, padx=100, pady=(50, 0))
 
-l2 = Label(w, text="Group 08", fg="white", bg=a, anchor=W)
+l2 = Label(w, text="NHÓM 08", fg="white", bg=a, anchor=W)
 lst2 = ('Tahoma', 28)
 l2.config(font=lst2)
 # l2.place(x=90, y=110)
 l2.pack(fill=BOTH, padx=100)
 
-l3 = Label(w, text="Vo Chanh Tin\nPhan Nhu Quynh\nNguyen Van Dang Huynh", foreground="white", background=a, justify=LEFT, anchor=W)
+l3 = Label(w, text="Võ Chánh Tín\nPhan Như Quỳnh\nNguyễn Văn Đăng Huỳnh", foreground="white", background=a, justify=LEFT, anchor=W)
 lst3 = ('Tahoma', 14)
 l3.config(font=lst3)
 l3.pack(fill=BOTH, padx=100, pady=10)
 
-b1 = Button(w, width=20, height=2, text="Get started", command=bar, border=1, fg=a, bg="white", anchor=CENTER)
+b1 = Button(w, width=20, height=2, text="Bắt đầu", command=bar, border=1, fg=a, bg="white", anchor=CENTER)
 # b1.place(x=200, y=300)
 b1.pack(pady=50)
 
