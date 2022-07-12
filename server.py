@@ -123,6 +123,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     # sendStr = "Sent"
     # client.sendall(sendStr)
     
+    
     while True: 
         order_length = recvall(client, 64).decode()
         order = recvall(client, int(order_length)).decode()
@@ -196,6 +197,8 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
             jData = recvall(client, int(jData_length)).decode()
             
             jRecv = json.loads(jData)
+            
+            upd_food_order_sql(str(jRecv), tId)
             
             time_orderAdd_length = recvall(client, 64).decode()
             time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
@@ -351,6 +354,16 @@ def add_status_payment_sql(total, cash, card, tId):
     tableCursor.execute(sql_insert_query, data_tuple)
     sqliteConnectionTable.commit()
     
+def upd_food_order_sql(food_order, tId):
+    sqliteConnectionTable1 = sqlite3.connect("sqlite.db")
+    tableCursor1 = sqliteConnectionTable1.cursor()
+    
+    sql_insert_query = "UPDATE \"" + tId + """\" SET food_order=?"""
+    
+    data_tuple = [food_order]
+    tableCursor1.execute(sql_insert_query, data_tuple)
+    sqliteConnectionTable1.commit()
+
 # Add food pop up windows
 def add_food_popup_windows(root, sqliteConnection):
     popup = Toplevel(root)
