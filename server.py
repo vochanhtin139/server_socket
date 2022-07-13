@@ -141,9 +141,6 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                 for i in range(len(jRecv) - 1):
                     tfood = "food" + str(i + 1)
                     sum = sum + int(jRecv[i+1][tfood]['num']) * int(jRecv[i+1][tfood]['price'])
-                    
-                # Save to sqlite
-                add_food_order_sql(str(jRecv), sum, time_orderAdd, tId)
                 
                 # Send total
                 client.sendall(str(len(str(sum))).encode().ljust(64))
@@ -182,8 +179,11 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                             break
                     else:
                         break
-                # Add status payment
+
                 if cashAdd != "Quit":
+                    # Save to sqlite
+                    add_food_order_sql(str(jRecv), sum, time_orderAdd, tId)
+                    # Add status payment
                     add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
             else: 
                 # Update food order
@@ -201,8 +201,6 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                 jData = recvall(client, int(jData_length)).decode()
                 
                 jRecv = json.loads(jData)
-                
-                upd_food_order_sql(str(jRecv), tId)
                 
                 time_orderAdd_length = recvall(client, 64).decode()
                 time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
@@ -251,6 +249,7 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                         break
                 # Add status payment
                 if cashAdd != "Quit":
+                    upd_food_order_sql(str(jRecv), tId)
                     add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
                 
         curs.close()
