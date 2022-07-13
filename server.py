@@ -70,189 +70,195 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
     # client.send(message.encode())
     # new_win_text.config(text=clientInfo)
     # client.close()
-
-    sqliteConn = sqlite3.connect("sqlite.db")
-    curs = sqliteConn.cursor()
-    
-    length = recvall(client, 64).decode('utf-8')
-    tableId = recvall(client, int(length)).decode()
-
-    tId = "table" + str(tableId)
-    
-    curs.execute("CREATE TABLE IF NOT EXISTS \"" + tId + """\" (
-        \"id\"	INTEGER NOT NULL UNIQUE,
-        \"food_order\"	TEXT,
-        \"total\"	INTEGER,
-        \"cash\"	INTEGER,
-        \"card\"	TEXT,
-        \"time_order\"	TEXT,
-        PRIMARY KEY("id" AUTOINCREMENT)
-    );""")
-    
-    curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
-    
-    tmp = {
-        "type": "food_menu"
-    }
-    jArr = []
-    jArr.append(tmp)
-    cnt = 1
-
-    records = curs.fetchall()
-    for item in records:
-        tfood = "food" + str(cnt)
-        js = {
-            tfood: {
-                "id": item[0],
-                "food_name": item[1],
-                "price": item[2],
-                "description": item[3]
-            }
-        }
-        cnt += 1
-        jArr.append(js)
-    client.sendall(str(len(json.dumps(jArr))).encode().ljust(64))
-    client.sendall(json.dumps(jArr).encode())
-
-    curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
-    for iPic in curs.fetchall():
-        client.sendall(str(len(iPic[4])).encode().ljust(64))
-
-        client.sendall(iPic[4])
-
-    # sendStr = "Sent"
-    # client.sendall(sendStr)
-    
-    
-    while True: 
-        order_length = recvall(client, 64).decode()
-        order = recvall(client, int(order_length)).decode()
+    try:
+        sqliteConn = sqlite3.connect("sqlite.db")
+        curs = sqliteConn.cursor()
         
-        if (order == "Order Food"):
-            jData_length = recvall(client, 64).decode() 
-            jData = recvall(client, int(jData_length)).decode()
-            
-            jRecv = json.loads(jData)
-            
-            time_orderAdd_length = recvall(client, 64).decode()
-            time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
-            
-            sum = 0
-            for i in range(len(jRecv) - 1):
-                tfood = "food" + str(i + 1)
-                sum = sum + int(jRecv[i+1][tfood]['num']) * int(jRecv[i+1][tfood]['price'])
-                
-            # Save to sqlite
-            add_food_order_sql(str(jRecv), sum, time_orderAdd, tId)
-            
-            # Send total
-            client.sendall(str(len(str(sum))).encode().ljust(64))
-            client.sendall(str(sum).encode())
-            
-            while True:
-                # Receive payment info
-                cashAdd_length = recvall(client, 64).decode()
-                cashAdd = recvall(client, int(cashAdd_length)).decode()
-                
-                cardAdd_length = recvall(client, 64).decode()
-                cardAdd = recvall(client, int(cardAdd_length)).decode()
-                
-                # Pay by card
-                if cardAdd != "":
-                    flag = 1
-                    if len(cardAdd) == 10:
-                        for i in range(10):
-                            if (cardAdd[i] >= '0') and (cardAdd[i] <= '9'):
-                                continue
-                            else:
-                                flag = 0
-                                cardAdd = ""
-                                break 
-                    else:
-                        cardAdd = ""
-                        flag = 0
-                    
-                    client.sendall(str(len(str(flag))).encode().ljust(64))
-                    client.sendall(str(flag).encode())
-                    
-                    if flag == 1:
-                        break
-                else:
-                    break
-            # Add status payment
-            add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
-        else: 
-            # Update food order
-            updTime_length = recvall(client, 64).decode()
-            updTime = recvall(client, int(updTime_length)).decode()
-            
-            if updTime == "false":
-                sqliteDel = sqlite3.connect("sqlite.db")
-                delCursor = sqliteDel.cursor()
-                delCursor.execute("DROP TABLE \"" + tId + """\" """)
-                sqliteDel.commit()
-                break
-            
-            jData_length = recvall(client, 64).decode() 
-            jData = recvall(client, int(jData_length)).decode()
-            
-            jRecv = json.loads(jData)
-            
-            upd_food_order_sql(str(jRecv), tId)
-            
-            time_orderAdd_length = recvall(client, 64).decode()
-            time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
-            
-            sum = 0
-            for i in range(len(jRecv) - 1):
-                tfood = "food" + str(i + 1)
-                sum = sum + int(jRecv[i+1][tfood]['num']) * int(jRecv[i+1][tfood]['price'])
+        length = recvall(client, 64).decode('utf-8')
+        tableId = recvall(client, int(length)).decode()
 
-            # Send total
-            client.sendall(str(len(str(sum))).encode().ljust(64))
-            client.sendall(str(sum).encode())
+        tId = "table" + str(tableId)
+        
+        curs.execute("CREATE TABLE IF NOT EXISTS \"" + tId + """\" (
+            \"id\"	INTEGER NOT NULL UNIQUE,
+            \"food_order\"	TEXT,
+            \"total\"	INTEGER,
+            \"cash\"	INTEGER,
+            \"card\"	TEXT,
+            \"time_order\"	TEXT,
+            PRIMARY KEY("id" AUTOINCREMENT)
+        );""")
+        
+        curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
+        
+        tmp = {
+            "type": "food_menu"
+        }
+        jArr = []
+        jArr.append(tmp)
+        cnt = 1
+
+        records = curs.fetchall()
+        for item in records:
+            tfood = "food" + str(cnt)
+            js = {
+                tfood: {
+                    "id": item[0],
+                    "food_name": item[1],
+                    "price": item[2],
+                    "description": item[3]
+                }
+            }
+            cnt += 1
+            jArr.append(js)
+        client.sendall(str(len(json.dumps(jArr))).encode().ljust(64))
+        client.sendall(json.dumps(jArr).encode())
+
+        curs.execute("SELECT * FROM food_menu ORDER BY id ASC")
+        for iPic in curs.fetchall():
+            client.sendall(str(len(iPic[4])).encode().ljust(64))
+
+            client.sendall(iPic[4])
+
+        # sendStr = "Sent"
+        # client.sendall(sendStr)
+        
+        
+        while True: 
+            order_length = recvall(client, 64).decode()
+            order = recvall(client, int(order_length)).decode()
             
-            while True:
-                # Receive payment info
-                cashAdd_length = recvall(client, 64).decode()
-                cashAdd = recvall(client, int(cashAdd_length)).decode()
+            if (order == "Order Food"):
+                jData_length = recvall(client, 64).decode() 
+                jData = recvall(client, int(jData_length)).decode()
                 
-                cardAdd_length = recvall(client, 64).decode()
-                cardAdd = recvall(client, int(cardAdd_length)).decode()
+                jRecv = json.loads(jData)
                 
-                # Pay by card
-                if cardAdd != "":
-                    flag = 1
-                    if len(cardAdd) == 10:
-                        for i in range(10):
-                            if (cardAdd[i] >= '0') and (cardAdd[i] <= '9'):
-                                continue
-                            else:
-                                flag = 0
-                                cardAdd = ""
-                                break 
+                time_orderAdd_length = recvall(client, 64).decode()
+                time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
+                
+                sum = 0
+                for i in range(len(jRecv) - 1):
+                    tfood = "food" + str(i + 1)
+                    sum = sum + int(jRecv[i+1][tfood]['num']) * int(jRecv[i+1][tfood]['price'])
+                    
+                # Save to sqlite
+                add_food_order_sql(str(jRecv), sum, time_orderAdd, tId)
+                
+                # Send total
+                client.sendall(str(len(str(sum))).encode().ljust(64))
+                client.sendall(str(sum).encode())
+                
+                while True:
+                    # Receive payment info
+                    cashAdd_length = recvall(client, 64).decode()
+                    cashAdd = recvall(client, int(cashAdd_length)).decode()
+                    
+                    cardAdd_length = recvall(client, 64).decode()
+                    cardAdd = recvall(client, int(cardAdd_length)).decode()
+                    
+                    # Pay by card
+                    if cardAdd != "":
+                        flag = 1
+                        if len(cardAdd) == 10:
+                            for i in range(10):
+                                if (cardAdd[i] >= '0') and (cardAdd[i] <= '9'):
+                                    continue
+                                else:
+                                    flag = 0
+                                    cardAdd = ""
+                                    break 
+                        else:
+                            cardAdd = ""
+                            flag = 0
+                        
+                        client.sendall(str(len(str(flag))).encode().ljust(64))
+                        client.sendall(str(flag).encode())
+                        
+                        if flag == 1:
+                            break
                     else:
-                        cardAdd = ""
-                        flag = 0
-                    
-                    client.sendall(str(len(str(flag))).encode().ljust(64))
-                    client.sendall(str(flag).encode())
-                    
-                    if flag == 1:
                         break
-                else:
+                # Add status payment
+                add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
+            else: 
+                # Update food order
+                updTime_length = recvall(client, 64).decode()
+                updTime = recvall(client, int(updTime_length)).decode()
+                
+                if updTime == "false":
+                    sqliteDel = sqlite3.connect("sqlite.db")
+                    delCursor = sqliteDel.cursor()
+                    delCursor.execute("DROP TABLE \"" + tId + """\" """)
+                    sqliteDel.commit()
                     break
-            # Add status payment
-            add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
-            
-    curs.close()
-    # data = client.recv(10000)
-    # print(data.decode()) 
+                
+                jData_length = recvall(client, 64).decode() 
+                jData = recvall(client, int(jData_length)).decode()
+                
+                jRecv = json.loads(jData)
+                
+                upd_food_order_sql(str(jRecv), tId)
+                
+                time_orderAdd_length = recvall(client, 64).decode()
+                time_orderAdd = recvall(client, int(time_orderAdd_length)).decode()
+                
+                sum = 0
+                for i in range(len(jRecv) - 1):
+                    tfood = "food" + str(i + 1)
+                    sum = sum + int(jRecv[i+1][tfood]['num']) * int(jRecv[i+1][tfood]['price'])
+
+                # Send total
+                client.sendall(str(len(str(sum))).encode().ljust(64))
+                client.sendall(str(sum).encode())
+                
+                while True:
+                    # Receive payment info
+                    cashAdd_length = recvall(client, 64).decode()
+                    cashAdd = recvall(client, int(cashAdd_length)).decode()
+                    
+                    cardAdd_length = recvall(client, 64).decode()
+                    cardAdd = recvall(client, int(cardAdd_length)).decode()
+                    
+                    # Pay by card
+                    if cardAdd != "":
+                        flag = 1
+                        if len(cardAdd) == 10:
+                            for i in range(10):
+                                if (cardAdd[i] >= '0') and (cardAdd[i] <= '9'):
+                                    continue
+                                else:
+                                    flag = 0
+                                    cardAdd = ""
+                                    break 
+                        else:
+                            cardAdd = ""
+                            flag = 0
+                        
+                        client.sendall(str(len(str(flag))).encode().ljust(64))
+                        client.sendall(str(flag).encode())
+                        
+                        if flag == 1:
+                            break
+                    else:
+                        break
+                # Add status payment
+                add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
+                
+        curs.close()
+        # data = client.recv(10000)
+        # print(data.decode()) 
+        
+        print(clientInfo, "disconnected")
+
+        # num_connection + 1
+        num_connection[0] -= 1                                  
     
-    print(clientInfo, "disconnected")
+    except:
+        print(clientInfo, "disconnected")
 
-    # num_connection + 1
-    num_connection[0] -= 1
+        # num_connection + 1
+        num_connection[0] -= 1
     
     btn_client_connecting_str.set(str(num_connection[0]) + " client đã kết nối")
     
