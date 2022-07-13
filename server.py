@@ -154,6 +154,9 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                     cashAdd_length = recvall(client, 64).decode()
                     cashAdd = recvall(client, int(cashAdd_length)).decode()
                     
+                    if cashAdd == "Quit":
+                        break
+                    
                     cardAdd_length = recvall(client, 64).decode()
                     cardAdd = recvall(client, int(cardAdd_length)).decode()
                     
@@ -180,7 +183,8 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                     else:
                         break
                 # Add status payment
-                add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
+                if cashAdd != "Quit":
+                    add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
             else: 
                 # Update food order
                 updTime_length = recvall(client, 64).decode()
@@ -217,6 +221,9 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                     cashAdd_length = recvall(client, 64).decode()
                     cashAdd = recvall(client, int(cashAdd_length)).decode()
                     
+                    if cashAdd == "Quit":
+                        break
+                    
                     cardAdd_length = recvall(client, 64).decode()
                     cardAdd = recvall(client, int(cardAdd_length)).decode()
                     
@@ -243,7 +250,8 @@ def handle_client(client, clientInfo, new_win_text, btn_client_connecting_str):
                     else:
                         break
                 # Add status payment
-                add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
+                if cashAdd != "Quit":
+                    add_status_payment_sql(int(sum), int(cashAdd), cardAdd, tId)
                 
         curs.close()
         # data = client.recv(10000)
